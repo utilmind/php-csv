@@ -14,7 +14,7 @@ class Csv {
      *
      * @param   string  $source_csv_filename    CSV file name to read from the local file system OR remote URL. (@see $filename parameter of `fopen()` function.)
      * @param   array   $columns_to_export      The map of associations.
-     *                                          E.g. 1 => 'title', 2 => ['longitude','float'], 3 => ['latitude', 'float'], 4 => ['zoom', 'integer'], etc.
+     *                                          E.g. 1 => 'title', 2 => ['longitude','float'], 3 => ['latitude', 'float'], 4 => ['zoom', 'int'], etc.
      *                                          If the type is omitted, it's considered as 'string'.
      * @param   int | callable  $skip_garbage   Either integer value to start from specified row (e.g. set 1 to skip the top row with header, or set it to 0 if CSV doesn't have any header)
      *                                          ...OR set up custom function, that can verify whether the line is garbage (e.g. if the value in some column has unexpected data type) and skip it.
@@ -24,6 +24,9 @@ class Csv {
      * @param   string  $csv_enclosure          Default is '"'. The optional enclosure parameter sets the field enclosure character (one single-byte character only).
      * @param   string  $csv_escape             Default is '\'. The optional escape parameter sets the escape character (at most one single-byte character). An empty string ('') disables the proprietary escape mechanism.
      *                                          @see `fgetcsv()` function. Default parameters can be changed in PHP 9 or later.
+     *
+     * AK TODO:
+     *   1. Allow null's, if parameter not speicifed. I think about "?float", "?int" and "?string" for beginning. "?" character in the beginning of type name should allow nulls.
      *
      * @throws Exception if source file doesn't exists.
      *
@@ -54,7 +57,7 @@ class Csv {
                             continue; // skip row
                         }
                      // callable
-                    }elseif ($skip_garbage($csv_row, $cur_row)) {
+                    }elseif (!$skip_garbage($csv_row, $cur_row)) {
                         continue; // skip row
                     }
                 }
@@ -67,7 +70,7 @@ class Csv {
                             if (is_array($val)) {
                                 $arr_row[$val[0]] = $csv_row[$key];
                                 if (isset($val[1])) {
-                                    switch ($val[1]) {
+                                    switch ($val[1]) { // lowercase only, don't waste time for other cases
                                         case 'float':
                                             $arr_row[$val[0]] = (float)$arr_row[$val[0]];
                                             break;
@@ -81,7 +84,7 @@ class Csv {
                             }else {
                                 $arr_row[$val] = $csv_row[$key];
                             }
-                        }else {
+                        }else { // TODO: allow null
                             $is_complete_set = false;
                             trigger_error("CSV doesn’t have column $key in row $cur_row.", E_USER_WARNING);
                         }
