@@ -16,15 +16,20 @@ END;
 // GO!
 // TODO: get $columns_to_export from the command-line arguments
 
-if ($data_arr = @Csv::read($argv[1], [2 => ['lat', 'float'], 3 => ['lng', 'float'], 4 => ['r', 'float']],
-        // we could do this is in post-processing with array_map(), but this is more memory-efficient way...
+if ($data_arr = @Csv::read($argv[1], [2 => ['lat', 'float'], 3 => ['lng', 'float'], 4 => ['r', 'float']], // columns 2, 3 and 4.
+
+// Alternatively use null's instead of property names to get the set of pure arrays instead of objects with the 'key: value' pairs:
+//if ($data_arr = @Csv::read($argv[1], [2 => [null, 'float'], 3 => [null, 'float'], 4 => [null, 'float']], // columns 2, 3 and 4.
+
+        // we could do this in post-processing with array_map(), but this is more memory-efficient way...
         function(&$row, $row_index) {
             if ($row_index < 1) {
                 // skip 1st header line
                 return false;
             }
 
-            // convert value
+            // Just example of converting some value....
+            // ...turn Longitude for the Western Hemisphere into negative values
             if (isset($row[3])) {
                 $row[3] = (float)$row[3];
                 if ($row[3] >= 180) {

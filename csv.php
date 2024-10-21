@@ -33,7 +33,7 @@ class Csv {
      * @return array    Associative array (of [keys => values]) that can be encoded into JSON with json_encode().
      */
     public static function read(string $source_csv_filename,
-                                array $columns_to_export = [],
+                                ?array $columns_to_export = [],
                                 int|callable $skip_garbage = 1,
                                 string $csv_separator = ',',
                                 string $csv_enclosure = '"',
@@ -68,18 +68,23 @@ class Csv {
                     foreach ($columns_to_export as $key => $val) {
                         if (isset($csv_row[$key])) {
                             if (is_array($val)) {
-                                $arr_row[$val[0]] = $csv_row[$key];
+                                $v = $csv_row[$key];
                                 if (isset($val[1])) {
                                     switch ($val[1]) { // lowercase only, don't waste time for other cases
                                         case 'float':
-                                            $arr_row[$val[0]] = (float)$arr_row[$val[0]];
+                                            $v = (float)$v;
                                             break;
 
                                         case 'int':
                                         case 'integer':
-                                            $arr_row[$val[0]] = (int)$arr_row[$val[0]];
+                                            $v = (int)$v;
                                             break;
                                     }
+                                }
+                                if ($val[0]) {
+                                    $arr_row[$val[0]] = $v;
+                                }else {
+                                    $arr_row[] = $v;
                                 }
                             }else {
                                 $arr_row[$val] = $csv_row[$key];
